@@ -5,6 +5,7 @@ import (
 	"rentroom/middleware"
 	"rentroom/models"
 	"rentroom/utils"
+	"strconv"
 
 	"gorm.io/gorm"
 )
@@ -24,7 +25,21 @@ func PropertyTenantList(db *gorm.DB) http.HandlerFunc {
 		}
 		countryID := r.URL.Query().Get("country")
 
-		// QUERY
+		// ADD (Query params for pagination)
+		pageStr := r.URL.Query().Get("page")
+		limitStr := r.URL.Query().Get("limit")
+
+		// ADD (Parsing page and limit)
+		page, err := strconv.Atoi(pageStr)
+		if err != nil || page < 1 {
+			page = 1
+		}
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil {
+			limit = 10
+		}
+		offset := (page - 1) * limit
+
 		propertyIDs, err := utils.GetPropertyIDs(db, userID)
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusNotFound)
@@ -37,7 +52,13 @@ func PropertyTenantList(db *gorm.DB) http.HandlerFunc {
 		} else {
 			query = query.Where("id IN ?", propertyIDs)
 		}
-		err = query.Find(&properties).Error
+
+		// ADD (Count the total before limit)
+		var total int64
+		query.Model(&models.Property{}).Count(&total)
+
+		// MODIFIED (Apply pagination limit and offset)
+		err = query.Limit(limit).Offset(offset).Find(&properties).Error
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
