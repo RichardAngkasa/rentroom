@@ -6,9 +6,9 @@ import (
 	"os"
 	"rentroom/internal/models"
 	service "rentroom/internal/services"
+	"rentroom/internal/validators"
 	"rentroom/middleware"
 	"rentroom/utils"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -71,10 +71,9 @@ func TenantGet(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		err = utils.PropertyUserChecker(db, userID, uint(propertyID))
@@ -204,10 +203,9 @@ func TenantEdit(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		err = utils.PropertyUserChecker(db, userID, uint(propertyID))
@@ -314,10 +312,9 @@ func TenantDelete(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		err = utils.PropertyUserChecker(db, userID, uint(propertyID))
@@ -370,10 +367,9 @@ func TenantImageList(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		err = utils.PropertyUserChecker(db, uint(userID), uint(propertyID))
@@ -420,10 +416,9 @@ func TenantImageCreate(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		err = utils.PropertyUserChecker(db, userID, uint(propertyID))
@@ -507,10 +502,9 @@ func TenantImageDelete(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		err = utils.PropertyUserChecker(db, userID, uint(propertyID))

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"rentroom/internal/models"
 	service "rentroom/internal/services"
+	"rentroom/internal/validators"
 	"rentroom/middleware"
 	"rentroom/utils"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -40,10 +40,9 @@ func AdminList(db *gorm.DB) http.HandlerFunc {
 func AdminGet(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// AUTH
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -71,10 +70,9 @@ func AdminPublish(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -109,10 +107,9 @@ func AdminDraft(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		err = utils.PropertyHaveAnActiveTransaction(db, uint(propertyID))

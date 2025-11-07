@@ -5,7 +5,6 @@ import (
 	services "rentroom/internal/services/property"
 	"rentroom/internal/validators"
 	"rentroom/utils"
-	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -47,10 +46,9 @@ func (h *publichHandler) PublicList() http.HandlerFunc {
 func (h *publichHandler) PublicGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// PARSE
-		vars := mux.Vars(r)
-		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
 		if err != nil {
-			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
