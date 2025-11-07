@@ -4,7 +4,6 @@ import (
 	"errors"
 	"rentroom/internal/models"
 	repository "rentroom/internal/repositories/property"
-	"strconv"
 
 	"gorm.io/gorm"
 )
@@ -17,15 +16,7 @@ func NewPropertyService(repo repository.PropertyRepository) *PropertyService {
 	return &PropertyService{repo: repo}
 }
 
-func (s *PropertyService) ListPublicProperties(countryStr string) ([]models.PropertyResponse, error) {
-	var countryID uint
-	if countryStr != "" {
-		parsed, err := strconv.ParseUint(countryStr, 10, 64)
-		if err != nil {
-			return nil, errors.New("invalid country id")
-		}
-		countryID = uint(parsed)
-	}
+func (s *PropertyService) ListPublicProperties(countryID uint) ([]models.PropertyResponse, error) {
 	properties, err := s.repo.GetPublishedProperties(countryID)
 	if err != nil {
 		return nil, err

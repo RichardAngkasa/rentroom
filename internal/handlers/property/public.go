@@ -3,6 +3,7 @@ package property
 import (
 	"net/http"
 	services "rentroom/internal/services/property"
+	"rentroom/internal/validators"
 	"rentroom/utils"
 	"strconv"
 
@@ -21,9 +22,14 @@ func (h *publichHandler) PublicList() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// PARSE
 		countryStr := r.URL.Query().Get("country")
+		countryID, err := validators.ParseCountryID(countryStr)
+		if err != nil {
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
 		// QUERY
-		properties, err := h.propertyService.ListPublicProperties(countryStr)
+		properties, err := h.propertyService.ListPublicProperties(countryID)
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
