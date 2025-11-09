@@ -570,7 +570,7 @@ func TenantThumbnailCreate(db *gorm.DB) http.HandlerFunc {
 		// RESPONSE
 		utils.JSONResponse(w, utils.Response{
 			Success: true,
-			Message: "images added to property",
+			Message: "thumbnail added to property",
 			Data:    map[string]string{"thumbnail": publicPath},
 		}, http.StatusCreated)
 	}
