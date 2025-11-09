@@ -49,7 +49,7 @@ func PublicGet(db *gorm.DB) http.HandlerFunc {
 		}
 
 		// QUERY PROPERTY
-		property, err := service.GetProperty(db, int(propertyID))
+		property, err := service.GetPropertyWithImages(db, int(propertyID))
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -59,34 +59,11 @@ func PublicGet(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// QUERY IMAGES
-		var images []models.Image
-		if err := db.Where("property_id = ?", property.ID).Find(&images).Error; err != nil {
-			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// MAP IMAGES TO RESPONSE
-		imageResponse := make([]models.ImageResponse, 0, len(images))
-		for i, img := range images {
-			imageResponse[i] = models.ImageResponse{
-				ID:         img.ID,
-				PropertyID: img.PropertyID,
-				Path:       img.Path,
-			}
-		}
-
-		// BUILD
-		result := models.PropertyWithImages{
-			PropertyResponse: utils.ConvertPropertyResponse(property),
-			Images:           imageResponse,
-		}
-
 		// RESPONSE
 		utils.JSONResponse(w, utils.Response{
 			Success: true,
 			Message: "property returned",
-			Data:    result,
+			Data:    property,
 		}, http.StatusOK)
 	}
 }
