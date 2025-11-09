@@ -48,7 +48,7 @@ func AdminGet(db *gorm.DB) http.HandlerFunc {
 		}
 
 		// QUERY
-		property, err := service.GetProperty(db, int(propertyID))
+		property, err := service.GetPropertyWithImages(db, int(propertyID))
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -86,7 +86,7 @@ func AdminPublish(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		property, err := service.GetProperty(db, int(propertyID))
+		property, err := service.GetPropertyWithImages(db, int(propertyID))
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -129,7 +129,7 @@ func AdminDraft(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		property, err := service.GetProperty(db, int(propertyID))
+		property, err := service.GetPropertyWithImages(db, int(propertyID))
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
