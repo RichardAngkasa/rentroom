@@ -25,6 +25,7 @@ type Property struct {
 	City             string    `json:"city"`
 	Address          string    `json:"address"`
 	Zip              string    `json:"zip"`
+	Thumbnail        string    `json:"thumbnail"`
 
 	Images []Image `gorm:"constraint:OnDelete:CASCADE"`
 }
@@ -52,6 +53,7 @@ type PropertyCreateRequest struct {
 	Address          string    `json:"address" validate:"required,min=5"`
 	Zip              string    `json:"zip" validate:"required,gt=0"`
 	Amenities        []uint    `json:"amenities" validate:"required,min=1"`
+	Thumbnail        string    `json:"thumbnail" validate:"omitempty,min=3"`
 }
 type PropertyEditRequest struct {
 	Name             *string    `json:"name" validate:"omitempty,min=3"`
@@ -68,6 +70,7 @@ type PropertyEditRequest struct {
 	Address          *string    `json:"address" validate:"omitempty,min=5"`
 	Zip              *string    `json:"zip" validate:"omitempty,gt=0"`
 	Amenities        *[]uint    `json:"amenities" validate:"omitempty,min=1"`
+	Thumbnail        *string    `json:"thumbnail" validate:"omitempty,min=3"`
 }
 
 type PropertyResponse struct {
@@ -86,4 +89,10 @@ type PropertyResponse struct {
 	City             string    `json:"city"`
 	Address          string    `json:"address"`
 	Zip              string    `json:"zip"`
+	Thumbnail        string    `json:"thumbnail"`
+}
+
+type PropertyWithImages struct {
+	PropertyResponse
+	Images []ImageResponse `json:"images"`
 }
