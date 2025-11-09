@@ -31,15 +31,6 @@ func NormalizePhone(phone string) string {
 }
 
 func SeedInitialData(db *gorm.DB) {
-	countries := []models.Country{
-		{Name: "Indonesia"},
-		{Name: "Singapore"},
-		{Name: "Malaysia"},
-	}
-	for _, c := range countries {
-		db.FirstOrCreate(&c, models.Country{Name: c.Name})
-	}
-
 	amenities := []models.Amenity{
 		{Name: "Wifi"},
 		{Name: "Parking"},
