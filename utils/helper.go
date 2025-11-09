@@ -31,15 +31,6 @@ func NormalizePhone(phone string) string {
 }
 
 func SeedInitialData(db *gorm.DB) {
-	countries := []models.Country{
-		{Name: "Indonesia"},
-		{Name: "Singapore"},
-		{Name: "Malaysia"},
-	}
-	for _, c := range countries {
-		db.FirstOrCreate(&c, models.Country{Name: c.Name})
-	}
-
 	amenities := []models.Amenity{
 		{Name: "Wifi"},
 		{Name: "Parking"},
@@ -83,7 +74,30 @@ func ConvertPropertiesResponse(properties []models.Property) []models.PropertyRe
 			City:             p.City,
 			Address:          p.Address,
 			Zip:              p.Zip,
+			Thumbnail:        p.Thumbnail,
 		})
+	}
+	return responses
+}
+
+func ConvertPropertyResponse(p models.Property) models.PropertyResponse {
+	responses := models.PropertyResponse{
+		ID:               p.ID,
+		CountryID:        p.CountryID,
+		Name:             p.Name,
+		Guests:           p.Guests,
+		Price:            p.Price,
+		Status:           p.Status,
+		DisabledDateFrom: p.DisabledDateFrom,
+		DisabledDateTo:   p.DisabledDateTo,
+		Description:      p.Description,
+		Geo:              p.Geo,
+		Province:         p.Province,
+		District:         p.District,
+		City:             p.City,
+		Address:          p.Address,
+		Zip:              p.Zip,
+		Thumbnail:        p.Thumbnail,
 	}
 	return responses
 }

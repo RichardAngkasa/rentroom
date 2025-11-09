@@ -16,9 +16,9 @@ func RegisterCountryRoutes(r *mux.Router, db *gorm.DB) {
 	admin.Handle("", country.AdminCreate(db)).Methods("POST")
 	admin.Handle("/{id}", country.AdminGet(db)).Methods("GET")
 	admin.Handle("/{id}", country.AdminDelete(db)).Methods("DELETE")
-	admin.Handle("/{id}/images", country.AdminImageCreate(db)).Methods("POST")
-	admin.Handle("/{id}/images", country.AdminImageDelete(db)).Methods("DELETE")
-	
+	admin.Handle("/{id}/thumbnail", country.AdminThumbnailCreate(db)).Methods("POST")
+	admin.Handle("/{id}/thumbnail", country.AdminThumbnailDelete(db)).Methods("DELETE")
+
 	// PUBLIC
 	public := r.PathPrefix("/api/v1/public/countries").Subrouter()
 	public.HandleFunc("", country.PublicList(db)).Methods("GET")

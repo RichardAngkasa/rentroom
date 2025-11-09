@@ -9,6 +9,7 @@ import (
 	"rentroom/internal/validators"
 	"rentroom/middleware"
 	"rentroom/utils"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -83,7 +84,7 @@ func TenantGet(db *gorm.DB) http.HandlerFunc {
 		}
 
 		// QUERY
-		property, err := service.GetProperty(db, int(propertyID))
+		property, err := service.GetPropertyWithImages(db, int(propertyID))
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -175,7 +176,7 @@ func TenantCreate(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		propertyUpdated, err := service.GetProperty(db, int(property.ID))
+		propertyUpdated, err := service.GetPropertyWithImages(db, int(property.ID))
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -284,7 +285,7 @@ func TenantEdit(db *gorm.DB) http.HandlerFunc {
 				return
 			}
 		}
-		propertyUpdated, err := service.GetProperty(db, int(propertyID))
+		propertyUpdated, err := service.GetPropertyWithImages(db, int(propertyID))
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -350,55 +351,6 @@ func TenantDelete(db *gorm.DB) http.HandlerFunc {
 		utils.JSONResponse(w, utils.Response{
 			Success: true,
 			Message: "property deleted",
-		}, http.StatusOK)
-	}
-}
-
-func TenantImageList(db *gorm.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// AUTH
-		userID, err := middleware.MustUserID(r)
-		if err != nil {
-			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-		err = utils.UserIsTenant(db, userID)
-		if err != nil {
-			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-		propertyID, err := validators.ParsePropertyID(mux.Vars(r))
-		if err != nil {
-			utils.JSONError(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		err = utils.PropertyUserChecker(db, uint(userID), uint(propertyID))
-		if err != nil {
-			utils.JSONError(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		// QUERY
-		var images []models.Image
-		err = db.Where("property_id = ?", propertyID).Find(&images).Error
-		if err != nil {
-			utils.JSONError(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		imagesResponses := make([]models.ImageResponse, 0)
-		for _, img := range images {
-			imagesResponses = append(imagesResponses, models.ImageResponse{
-				ID:         img.ID,
-				PropertyID: img.PropertyID,
-				Path:       img.Path,
-			})
-		}
-
-		// RESPONSE
-		utils.JSONResponse(w, utils.Response{
-			Success: true,
-			Message: "images returned from property",
-			Data:    imagesResponses,
 		}, http.StatusOK)
 	}
 }
@@ -548,6 +500,121 @@ func TenantImageDelete(db *gorm.DB) http.HandlerFunc {
 		utils.JSONResponse(w, utils.Response{
 			Success: true,
 			Message: "images deleted from property",
+		}, http.StatusCreated)
+	}
+}
+
+func TenantThumbnailCreate(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// AUTH
+		userID, err := middleware.MustUserID(r)
+		if err != nil {
+			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		err = utils.UserIsTenant(db, userID)
+		if err != nil {
+			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		vars := mux.Vars(r)
+		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		if err != nil {
+			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			return
+		}
+		err = utils.PropertyUserChecker(db, userID, uint(propertyID))
+		if err != nil {
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// QUERY
+		err = r.ParseMultipartForm(10 << 20)
+		if err != nil {
+			utils.JSONError(w, "failed to parse form", http.StatusInternalServerError)
+			return
+		}
+		fileHeader, ok := r.MultipartForm.File["thumbnail"]
+		if !ok || len(fileHeader) == 0 {
+			utils.JSONError(w, "thumbnail file is required", http.StatusBadRequest)
+			return
+		}
+		file, err := fileHeader[0].Open()
+		if err != nil {
+			utils.JSONError(w, "failed to open file", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+		fsPath, publicPath := utils.PathImage(fileHeader[0])
+		out, err := os.Create(fsPath)
+		if err != nil {
+			utils.JSONError(w, "failed to save file", http.StatusInternalServerError)
+			return
+		}
+		defer out.Close()
+		if _, err := io.Copy(out, file); err != nil {
+			utils.JSONError(w, "failed to write file", http.StatusInternalServerError)
+			return
+		}
+		if err := db.Model(&models.Property{}).Where("id = ?", propertyID).Update("thumbnail", publicPath).Error; err != nil {
+			_ = os.Remove(fsPath)
+			utils.JSONError(w, "failed to update property thumbnail", http.StatusInternalServerError)
+			return
+		}
+
+		// RESPONSE
+		utils.JSONResponse(w, utils.Response{
+			Success: true,
+			Message: "thumbnail added to property",
+			Data:    map[string]string{"thumbnail": publicPath},
+		}, http.StatusCreated)
+	}
+}
+
+func TenantThumbnailDelete(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// AUTH
+		userID, err := middleware.MustUserID(r)
+		if err != nil {
+			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		err = utils.UserIsTenant(db, userID)
+		if err != nil {
+			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		vars := mux.Vars(r)
+		propertyID, err := strconv.ParseUint(vars["id"], 10, 64)
+		if err != nil {
+			utils.JSONError(w, "invalid property id", http.StatusBadRequest)
+			return
+		}
+		err = utils.PropertyUserChecker(db, userID, uint(propertyID))
+		if err != nil {
+			utils.JSONError(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// QUERY
+		var property models.Property
+		if err := db.Select("thumbnail").First(&property, propertyID).Error; err != nil {
+			utils.JSONError(w, "property not found", http.StatusNotFound)
+			return
+		}
+		if property.Thumbnail != "" {
+			_ = os.Remove("." + property.Thumbnail) // assuming publicPath starts with "/uploads/..."
+		}
+		if err := db.Model(&models.Property{}).Where("id = ?", propertyID).Update("thumbnail", "").Error; err != nil {
+			utils.JSONError(w, "failed to delete thumbnail", http.StatusInternalServerError)
+			return
+		}
+
+		// RESPONSE
+		utils.JSONResponse(w, utils.Response{
+			Success: true,
+			Message: "thumbnail deleted from property",
 		}, http.StatusCreated)
 	}
 }

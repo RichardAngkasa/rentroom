@@ -118,7 +118,7 @@ func AdminCreate(db *gorm.DB) http.HandlerFunc {
 }
 
 func AdminDelete(db *gorm.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request){
+	return func(w http.ResponseWriter, r *http.Request) {
 		// AUTH
 		err := middleware.MustAdminID(r)
 		if err != nil {
@@ -157,7 +157,7 @@ func AdminDelete(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
-func AdminImageCreate(db *gorm.DB) http.HandlerFunc {
+func AdminThumbnailCreate(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// AUTH
 		err := middleware.MustAdminID(r)
@@ -216,13 +216,13 @@ func AdminImageCreate(db *gorm.DB) http.HandlerFunc {
 		// RESPONSE
 		utils.JSONResponse(w, utils.Response{
 			Success: true,
-			Message: "country image created",
+			Message: "country thumbnail created",
 			Data:    publicPath,
 		}, http.StatusOK)
 	}
 }
 
-func AdminImageDelete(db *gorm.DB) http.HandlerFunc {
+func AdminThumbnailDelete(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// AUTH
 		err := middleware.MustAdminID(r)
@@ -268,9 +268,8 @@ func AdminImageDelete(db *gorm.DB) http.HandlerFunc {
 		// RESPONSE
 		utils.JSONResponse(w, utils.Response{
 			Success: true,
-			Message: "image deleted from country",
+			Message: "thumbnail deleted from country",
 			Data:    country,
 		}, http.StatusOK)
 	}
 }
-

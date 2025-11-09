@@ -32,9 +32,10 @@ func RegisterPropertyRoutes(r *mux.Router, db *gorm.DB) {
 	tenant.Handle("/{id}", property.TenantGet(db)).Methods("GET")
 	tenant.Handle("/{id}", property.TenantEdit(db)).Methods("PATCH")
 	tenant.Handle("/{id}", property.TenantDelete(db)).Methods("DELETE")
-	tenant.Handle("/{id}/images", property.TenantImageList(db)).Methods("GET")
 	tenant.Handle("/{id}/images", property.TenantImageCreate(db)).Methods("POST")
 	tenant.Handle("/{id}/images", property.TenantImageDelete(db)).Methods("DELETE")
+	tenant.Handle("/{id}/thumbnail", property.TenantThumbnailCreate(db)).Methods("POST")
+	tenant.Handle("/{id}/thumbnail", property.TenantThumbnailDelete(db)).Methods("DELETE")
 
 	// PUBLIC
 	public := r.PathPrefix("/api/v1/public/properties").Subrouter()

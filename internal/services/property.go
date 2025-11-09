@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"rentroom/internal/models"
+	"rentroom/utils"
 
 	"gorm.io/gorm"
 )
@@ -16,6 +17,31 @@ func GetProperty(db *gorm.DB, propertyID int) (models.Property, error) {
 	return property, nil
 }
 
+func GetPropertyWithImages(db *gorm.DB, propertyID int) (models.PropertyWithImages, error) {
+	property, err := GetProperty(db, propertyID)
+	if err != nil {
+		return models.PropertyWithImages{}, err
+	}
+
+	var images []models.Image
+	if err := db.Where("property_id = ?", property.ID).Find(&images).Error; err != nil {
+		return models.PropertyWithImages{}, err
+	}
+
+	imageResponses := make([]models.ImageResponse, len(images))
+	for i, img := range images {
+		imageResponses[i] = models.ImageResponse{
+			ID:         img.ID,
+			PropertyID: img.PropertyID,
+			Path:       img.Path,
+		}
+	}
+
+	return models.PropertyWithImages{
+		PropertyResponse: utils.ConvertPropertyResponse(property),
+		Images:           imageResponses,
+	}, nil
+}
 
 func GetPropertyIDs(db *gorm.DB, userID uint) ([]uint, error) {
 	var propertyIDs []uint
