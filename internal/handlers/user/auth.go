@@ -134,7 +134,7 @@ func Login(db *gorm.DB) http.HandlerFunc {
 			First(&user).Error
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.JSONError(w, "invalid credentials", http.StatusUnauthorized)
+				utils.JSONError(w, "invalid credentials", http.StatusBadRequest)
 				return
 			}
 			utils.JSONError(w, "database error", http.StatusInternalServerError)
@@ -142,7 +142,7 @@ func Login(db *gorm.DB) http.HandlerFunc {
 		}
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 		if err != nil {
-			utils.JSONError(w, "invalid credentials", http.StatusUnauthorized)
+			utils.JSONError(w, "invalid credentials", http.StatusBadRequest)
 			return
 		}
 		token, err := utils.GenerateJWT(uint(user.ID), "user")
@@ -183,12 +183,12 @@ func Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("jwt_token_user")
 		if err != nil {
-			utils.JSONError(w, "no cookie", http.StatusUnauthorized)
+			utils.JSONError(w, "no cookie", http.StatusBadRequest)
 			return
 		}
 		claims, err := middleware.Validate(cookie, "user")
 		if err != nil {
-			utils.JSONError(w, "invalid token", http.StatusUnauthorized)
+			utils.JSONError(w, "invalid token", http.StatusBadRequest)
 			return
 		}
 		userID := int(claims["id"].(float64))

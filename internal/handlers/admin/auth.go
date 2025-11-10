@@ -27,12 +27,12 @@ func Login(db *gorm.DB) http.HandlerFunc {
 		}
 		adminUsername := os.Getenv("ADMIN_USERNAME")
 		if req.Username != adminUsername {
-			utils.JSONError(w, "unauthorized", http.StatusUnauthorized)
+			utils.JSONError(w, "unauthorized", http.StatusBadRequest)
 			return
 		}
 		adminPassword := os.Getenv("ADMIN_PASSWORD")
 		if req.Password != adminPassword {
-			utils.JSONError(w, "unauthorized", http.StatusUnauthorized)
+			utils.JSONError(w, "unauthorized", http.StatusBadRequest)
 			return
 		}
 
