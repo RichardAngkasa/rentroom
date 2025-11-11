@@ -2,17 +2,16 @@ package middleware
 
 import (
 	"errors"
-	"net/http"
 	"rentroom/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func Validate(c *http.Cookie, allowedRoles ...string) (jwt.MapClaims, error) {
-	if c == nil {
+func ValidateToken(token string, allowedRoles ...string) (jwt.MapClaims, error) {
+	if token == "" {
 		return nil, errors.New("missing token")
 	}
-	claims, err := utils.ParseJWT(c.Value)
+	claims, err := utils.ParseJWT(token)
 	if err != nil {
 		return nil, errors.New("invalid token")
 	}

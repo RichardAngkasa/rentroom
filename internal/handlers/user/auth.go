@@ -81,14 +81,7 @@ func Register(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, "redis", http.StatusInternalServerError)
 			return
 		}
-		http.SetCookie(w, &http.Cookie{
-			Name:     "jwt_token_user",
-			Value:    token,
-			HttpOnly: true,
-			Secure:   false,
-			Path:     "/",
-			SameSite: http.SameSiteLaxMode,
-		})
+		utils.SetTokenInHeader(w, token)
 		userUpdated := models.UserRegisterResponse{
 			User: models.UserResponse{
 				ID:         user.ID,
@@ -159,14 +152,7 @@ func Login(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, "redis", http.StatusInternalServerError)
 			return
 		}
-		http.SetCookie(w, &http.Cookie{
-			Name:     "jwt_token_user",
-			Value:    token,
-			HttpOnly: true,
-			Secure:   false,
-			Path:     "/",
-			SameSite: http.SameSiteLaxMode,
-		})
+		utils.SetTokenInHeader(w, token)
 
 		// RESPONSE
 		utils.JSONResponse(w, utils.Response{
@@ -181,12 +167,12 @@ func Login(db *gorm.DB) http.HandlerFunc {
 
 func Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("jwt_token_user")
+		token, err := utils.ExtractTokenFromHeader(r)
 		if err != nil {
 			utils.JSONError(w, "no cookie", http.StatusBadRequest)
 			return
 		}
-		claims, err := middleware.Validate(cookie, "user")
+		claims, err := middleware.ValidateToken(token, "user")
 		if err != nil {
 			utils.JSONError(w, "invalid token", http.StatusBadRequest)
 			return
@@ -195,15 +181,7 @@ func Logout() http.HandlerFunc {
 		redisKey := fmt.Sprintf("session:user:%d", userID)
 		utils.RedisUser.Del(utils.Ctx, redisKey)
 
-		http.SetCookie(w, &http.Cookie{
-			Name:     "jwt_token_user",
-			Value:    "",
-			Path:     "/",
-			MaxAge:   -1,
-			HttpOnly: true,
-			Secure:   false,
-			SameSite: http.SameSiteLaxMode,
-		})
+		w.Header().Set("Authorization", "")
 
 		utils.JSONResponse(w, utils.Response{
 			Success: true,

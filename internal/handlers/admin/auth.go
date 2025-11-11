@@ -51,14 +51,7 @@ func Login(db *gorm.DB) http.HandlerFunc {
 			utils.JSONError(w, "redis", http.StatusInternalServerError)
 			return
 		}
-		http.SetCookie(w, &http.Cookie{
-			Name:     "jwt_token_admin",
-			Value:    token,
-			HttpOnly: true,
-			Secure:   false,
-			Path:     "/",
-			SameSite: http.SameSiteLaxMode,
-		})
+		utils.SetTokenInHeader(w, token)
 
 		// RESPONSE
 		utils.JSONResponse(w, utils.Response{

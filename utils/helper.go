@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"mime/multipart"
+	"net/http"
 	"path/filepath"
 	"rentroom/internal/models"
 	"strings"
@@ -129,4 +130,20 @@ func ConvertTransactionResponse(transaction models.Transaction) models.Transacti
 		Status:     transaction.Status,
 		VoucherID:  transaction.VoucherID,
 	}
+}
+
+func ExtractTokenFromHeader(r *http.Request) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return "", errors.New("authorization header missing")
+	}
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+		return "", errors.New("invalid authorization header format")
+	}
+	return parts[1], nil
+}
+
+func SetTokenInHeader(w http.ResponseWriter, token string) {
+	w.Header().Set("Authorization", "Bearer "+token)
 }

@@ -9,12 +9,12 @@ import (
 
 func JwtAuthUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie("jwt_token_user")
+		token, err := utils.ExtractTokenFromHeader(r)
 		if err != nil {
-			utils.JSONError(w, "unauthorized", http.StatusUnauthorized)
+			utils.JSONError(w, "unauthorized "+err.Error(), http.StatusUnauthorized)
 			return
 		}
-		claims, err := Validate(c, "user")
+		claims, err := ValidateToken(token, "user")
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
@@ -24,7 +24,7 @@ func JwtAuthUser(next http.Handler) http.Handler {
 		redisKey := fmt.Sprintf("session:user:%d", userID)
 
 		storedToken, err := utils.RedisUser.Get(utils.Ctx, redisKey).Result()
-		if err != nil || storedToken != c.Value {
+		if err != nil || storedToken != token {
 			utils.JSONError(w, "session expired or invalid", http.StatusUnauthorized)
 			return
 		}
@@ -37,12 +37,12 @@ func JwtAuthUser(next http.Handler) http.Handler {
 
 func JwtAuthAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie("jwt_token_admin")
+		token, err := utils.ExtractTokenFromHeader(r)
 		if err != nil {
-			utils.JSONError(w, "unauthorized", http.StatusUnauthorized)
+			utils.JSONError(w, "unauthorized "+err.Error(), http.StatusUnauthorized)
 			return
 		}
-		claims, err := Validate(c, "admin")
+		claims, err := ValidateToken(token, "admin")
 		if err != nil {
 			utils.JSONError(w, err.Error(), http.StatusUnauthorized)
 			return
@@ -52,13 +52,13 @@ func JwtAuthAdmin(next http.Handler) http.Handler {
 		redisKey := fmt.Sprintf("session:admin:%d", adminID)
 
 		storedToken, err := utils.RedisUser.Get(utils.Ctx, redisKey).Result()
-		if err != nil || storedToken != c.Value {
+		if err != nil || storedToken != token {
 			utils.JSONError(w, "session expired or invalid", http.StatusUnauthorized)
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), CtxAdminID, adminID)
-		ctx = context.WithValue(ctx, CtxRole, "user")
+		ctx = context.WithValue(ctx, CtxRole, "admin")
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
